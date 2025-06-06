@@ -1,0 +1,30 @@
+{
+  // -------------------------------------------------
+  // Reglas básicas recomendadas por HTMLHint:
+  // Más info: https://htmlhint.com/docs/user-guide/rules
+  // -------------------------------------------------
+
+  // 1. Verifica que cada <img> tenga atributo alt:
+  "attr-no-duplication": true,
+
+  // 2. Verifica que no falte <!DOCTYPE html> al inicio:
+  "doctype-first": true,
+
+  // 3. Uso correcto de comillas para atributos:
+  "attr-value-double-quotes": true,
+
+  // 4. Verifica que no haya espacios en nombres de atributos inválidos:
+  "attr-lowercase": true,
+
+  // 5. Evita usar <script> sin el atributo type si es JavaScript (es opcional en HTML5, pero se suele recomendar):
+  "tag-pair": true,
+
+  // 6. Asegura que el título <title> esté dentro de <head>
+  "title-require": true,
+
+  // 7. Evita que un <a> no tenga href:
+  "href-abs-or-rel": false,
+
+  // 8. Evita <img> con rutas inválidas:
+  "src-not-empty": true
+}
