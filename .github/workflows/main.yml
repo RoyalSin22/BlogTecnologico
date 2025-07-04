@@ -1,11 +1,10 @@
 name: CI/CD Pipeline
 
-# 1) Cuándo se dispara el flujo:
 on:
   push:
-    branches: [ develop ]        # Cada vez que alguien haga push a develop
+    branches: [ develop ]        # Se ejecuta al hacer push sobre develop
   pull_request:
-    branches: [ main ]           # Cada vez que se abra un PR hacia main
+    branches: [ main ]           # Se ejecuta al abrir PR hacia main
 
 jobs:
   # ===== JOB 1: build-and-test =====
@@ -14,25 +13,40 @@ jobs:
     runs-on: ubuntu-latest       # Máquina virtual Linux
     steps:
       - uses: actions/checkout@v3      # 1) Clona el código
-      - name: Set up Java 17           # 2) Prepara Java
-        uses: actions/setup-java@v3
-        with:
-          distribution: 'temurin'      # Distribución de Java (por ejemplo, Temurin)
-          java-version: '17'
-      - name: Build with Maven         # 3) Compila
-        run: mvn clean install -q
-      - name: Run Tests                # 4) Ejecuta tests
-        run: mvn test -q
+
+      - name: Verify files exist       # 2) “Build” ligero
+        run: |
+          echo "Verificando que haya HTML..."
+          if [ -z "$(ls *.html 2>/dev/null)" ]; then
+            echo "❌ No se encontraron archivos .html en la raíz"
+            exit 1
+          else
+            echo "✅ Archivos HTML detectados:"
+            ls *.html
+          fi
+
+      - name: Run a basic HTML linter (opcional)
+        run: |
+          echo "Instalando htmlhint..."
+          npm install -g htmlhint
+          echo "Revisando todas las páginas:"
+          htmlhint "**/*.html"
 
   # ===== JOB 2: deploy =====
   deploy:
     name: Deploy on merge to main
-    needs: build-and-test              # Espera a que termine el job anterior
+    needs: build-and-test              # Espera a que build-and-test termine OK
     runs-on: ubuntu-latest
     if: github.event_name == 'pull_request' && github.base_ref == 'main'
     steps:
       - uses: actions/checkout@v3
-      - name: Deploy to production
-        run: |
-          echo "Desplegando versión $(jq -r .version pom.xml)"
-          # Aquí irían tus comandos de despliegue reales
+
+      - name: Deploy to GitHub Pages   # Ejemplo de despliegue estático
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./                # Publica toda la carpeta raíz
+
+      - name: Notify
+        run: echo "✅ Sitio desplegado en GitHub Pages"
+
