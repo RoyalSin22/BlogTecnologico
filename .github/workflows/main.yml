@@ -1,0 +1,38 @@
+name: CI/CD Pipeline
+
+# 1) Cuándo se dispara el flujo:
+on:
+  push:
+    branches: [ develop ]        # Cada vez que alguien haga push a develop
+  pull_request:
+    branches: [ main ]           # Cada vez que se abra un PR hacia main
+
+jobs:
+  # ===== JOB 1: build-and-test =====
+  build-and-test:
+    name: Build & Test on develop
+    runs-on: ubuntu-latest       # Máquina virtual Linux
+    steps:
+      - uses: actions/checkout@v3      # 1) Clona el código
+      - name: Set up Java 17           # 2) Prepara Java
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'      # Distribución de Java (por ejemplo, Temurin)
+          java-version: '17'
+      - name: Build with Maven         # 3) Compila
+        run: mvn clean install -q
+      - name: Run Tests                # 4) Ejecuta tests
+        run: mvn test -q
+
+  # ===== JOB 2: deploy =====
+  deploy:
+    name: Deploy on merge to main
+    needs: build-and-test              # Espera a que termine el job anterior
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request' && github.base_ref == 'main'
+    steps:
+      - uses: actions/checkout@v3
+      - name: Deploy to production
+        run: |
+          echo "Desplegando versión $(jq -r .version pom.xml)"
+          # Aquí irían tus comandos de despliegue reales
