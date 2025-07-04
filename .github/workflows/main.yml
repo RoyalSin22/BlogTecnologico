@@ -2,51 +2,46 @@ name: CI/CD Pipeline
 
 on:
   push:
-    branches: [ develop ]        # Se ejecuta al hacer push sobre develop
+    branches: [ develop ]
   pull_request:
-    branches: [ main ]           # Se ejecuta al abrir PR hacia main
+    branches: [ main ]
 
 jobs:
-  # ===== JOB 1: build-and-test =====
   build-and-test:
     name: Build & Test on develop
-    runs-on: ubuntu-latest       # Máquina virtual Linux
+    runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3      # 1) Clona el código
+      - uses: actions/checkout@v3
 
-      - name: Verify files exist       # 2) “Build” ligero
+      - name: Verify HTML files exist
         run: |
-          echo "Verificando que haya HTML..."
-          if [ -z "$(ls *.html 2>/dev/null)" ]; then
-            echo "❌ No se encontraron archivos .html en la raíz"
+          echo "Verificando que haya archivos HTML en html/..."
+          # Intenta listar html/*.html; si no hay nada, falla
+          if [ -z "$(ls html/*.html 2>/dev/null)" ]; then
+            echo "❌ No se encontraron archivos .html en html/"
             exit 1
           else
             echo "✅ Archivos HTML detectados:"
-            ls *.html
+            ls html/*.html
           fi
 
-      - name: Run a basic HTML linter (opcional)
+      - name: (Opcional) Lint HTML
         run: |
           echo "Instalando htmlhint..."
           npm install -g htmlhint
-          echo "Revisando todas las páginas:"
-          htmlhint "**/*.html"
+          echo "Revisando html/*.html:"
+          htmlhint "html/*.html"
 
-  # ===== JOB 2: deploy =====
   deploy:
     name: Deploy on merge to main
-    needs: build-and-test              # Espera a que build-and-test termine OK
+    needs: build-and-test
     runs-on: ubuntu-latest
     if: github.event_name == 'pull_request' && github.base_ref == 'main'
     steps:
       - uses: actions/checkout@v3
 
-      - name: Deploy to GitHub Pages   # Ejemplo de despliegue estático
+      - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./                # Publica toda la carpeta raíz
-
-      - name: Notify
-        run: echo "✅ Sitio desplegado en GitHub Pages"
-
+          publish_dir: html            # <- publicamos el contenido de html/
