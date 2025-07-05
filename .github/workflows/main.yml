@@ -15,22 +15,19 @@ jobs:
 
       - name: Verify HTML files exist
         run: |
-          echo "Verificando que haya archivos HTML en html/..."
-          # Intenta listar html/*.html; si no hay nada, falla
-          if [ -z "$(ls html/*.html 2>/dev/null)" ]; then
-            echo "❌ No se encontraron archivos .html en html/"
+          echo "Verificando que haya archivos HTML en src/html/..."
+          if [ -z "$(ls src/html/*.html 2>/dev/null)" ]; then
+            echo "❌ No se encontraron archivos .html en src/html/"
             exit 1
           else
             echo "✅ Archivos HTML detectados:"
-            ls html/*.html
+            ls src/html/*.html
           fi
 
       - name: (Opcional) Lint HTML
         run: |
-          echo "Instalando htmlhint..."
           npm install -g htmlhint
-          echo "Revisando html/*.html:"
-          htmlhint "html/*.html"
+          htmlhint "src/html/*.html"
 
   deploy:
     name: Deploy on merge to main
@@ -44,4 +41,4 @@ jobs:
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: html            # <- publicamos el contenido de html/
+          publish_dir: src/html
