@@ -2,17 +2,18 @@ name: CI/CD Pipeline
 
 on:
   push:
-    branches: [ develop ]
+    branches: [ develop, staging ]    # Ahora también escuchamos staging
   pull_request:
     branches: [ main ]
 
 jobs:
+  # ===== JOB 1: build-and-test =====
   build-and-test:
     name: Build & Test on develop
+    if: github.ref == 'refs/heads/develop'    # Solo para develop
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-
       - name: Verify HTML files exist
         run: |
           echo "Verificando que haya archivos HTML en src/html/..."
@@ -23,12 +24,25 @@ jobs:
             echo "✅ Archivos HTML detectados:"
             ls src/html/*.html
           fi
-
       - name: (Opcional) Lint HTML
         run: |
           npm install -g htmlhint
           htmlhint "src/html/*.html"
 
+  # ===== JOB 2: preview (staging) =====
+  preview:
+    name: Preview on staging
+    if: github.ref == 'refs/heads/staging'   # Solo para staging
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Build Preview
+        run: |
+          echo "🛠️  Generando vista previa para staging..."
+          echo "Archivos HTML en src/html/:"
+          ls src/html/*.html
+
+  # ===== JOB 3: deploy =====
   deploy:
     name: Deploy on merge to main
     needs: build-and-test
@@ -36,7 +50,6 @@ jobs:
     if: github.event_name == 'pull_request' && github.base_ref == 'main'
     steps:
       - uses: actions/checkout@v3
-
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
         with:
