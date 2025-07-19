@@ -12,7 +12,7 @@ pipeline {
             steps {
                 echo '🔍 Verificando archivos HTML y CSS...'
                 sh 'test -f src/html/index.html && echo "✅ index.html encontrado en src/html"'
-                sh 'test -f styles/styles.css && echo "✅ CSS encontrado"'
+                sh 'test -f src/styles/styles.css && echo "✅ CSS encontrado"'
                 sh 'ls -R'  // Muestra toda la estructura de carpetas
             }
         }
